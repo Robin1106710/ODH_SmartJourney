@@ -1,0 +1,45 @@
+2025-01-09 16:41:49,751 - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2025-01-09 16:41:49,751 - INFO - [33mPress CTRL+C to quit[0m
+2025-01-09 16:41:49,751 - INFO -  * Restarting with stat
+2025-01-09 16:41:50,529 - WARNING -  * Debugger is active!
+2025-01-09 16:41:50,530 - INFO -  * Debugger PIN: 157-963-222
+2025-01-09 16:43:30,201 - INFO - 127.0.0.1 - - [09/Jan/2025 16:43:30] "POST /predict HTTP/1.1" 200 -
+2025-01-09 16:43:59,242 - INFO - 127.0.0.1 - - [09/Jan/2025 16:43:59] "[35m[1mPOST /generate-itinerary HTTP/1.1[0m" 500 -
+2025-01-09 17:00:38,642 - INFO -  * Detected change in 'F:\\VSCode\\ODH_SmartJourney\\script\\Backend.py', reloading
+2025-01-09 17:00:38,760 - INFO -  * Restarting with stat
+2025-01-09 17:00:39,543 - WARNING -  * Debugger is active!
+2025-01-09 17:00:39,544 - INFO -  * Debugger PIN: 157-963-222
+2025-01-09 17:00:44,162 - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2025-01-09 17:00:44,162 - INFO - [33mPress CTRL+C to quit[0m
+2025-01-09 17:00:44,163 - INFO -  * Restarting with stat
+2025-01-09 17:00:44,928 - WARNING -  * Debugger is active!
+2025-01-09 17:00:44,929 - INFO -  * Debugger PIN: 157-963-222
+2025-01-09 17:00:48,341 - INFO - 127.0.0.1 - - [09/Jan/2025 17:00:48] "[35m[1mPOST /generate-itinerary HTTP/1.1[0m" 500 -
+2025-01-09 17:09:13,007 - INFO -  * Detected change in 'F:\\VSCode\\ODH_SmartJourney\\script\\Backend.py', reloading
+2025-01-09 17:09:13,164 - INFO -  * Restarting with stat
+2025-01-09 17:09:13,951 - WARNING -  * Debugger is active!
+2025-01-09 17:09:13,952 - INFO -  * Debugger PIN: 157-963-222
+2025-01-09 17:09:16,939 - INFO - 127.0.0.1 - - [09/Jan/2025 17:09:16] "[35m[1mPOST /generate-itinerary HTTP/1.1[0m" 500 -
+2025-01-09 17:10:07,191 - INFO - 127.0.0.1 - - [09/Jan/2025 17:10:07] "[35m[1mPOST /generate-itinerary HTTP/1.1[0m" 500 -
+2025-01-09 17:11:43,589 - ERROR - Error during itinerary generation: 999 is not in list
+2025-01-09 17:11:43,589 - INFO - 127.0.0.1 - - [09/Jan/2025 17:11:43] "[35m[1mPOST /generate-itinerary HTTP/1.1[0m" 500 -
+2025-01-09 17:11:54,854 - INFO - 127.0.0.1 - - [09/Jan/2025 17:11:54] "[35m[1mPOST /generate-itinerary HTTP/1.1[0m" 500 -
+2025-01-09 17:13:48,510 - INFO -  * Detected change in 'F:\\VSCode\\ODH_SmartJourney\\script\\Backend.py', reloading
+2025-01-09 17:13:48,625 - INFO -  * Restarting with stat
+2025-01-09 17:13:49,401 - WARNING -  * Debugger is active!
+2025-01-09 17:13:49,403 - INFO -  * Debugger PIN: 157-963-222
+2025-01-09 17:14:02,406 - INFO - 127.0.0.1 - - [09/Jan/2025 17:14:02] "[35m[1mPOST /generate-itinerary HTTP/1.1[0m" 500 -
+2025-01-09 17:16:55,774 - INFO -  * Detected change in 'F:\\VSCode\\ODH_SmartJourney\\script\\Backend.py', reloading
+2025-01-09 17:16:55,945 - INFO -  * Restarting with stat
+2025-01-09 17:16:56,726 - WARNING -  * Debugger is active!
+2025-01-09 17:16:56,727 - INFO -  * Debugger PIN: 157-963-222
+2025-01-09 17:18:01,837 - INFO -  * Detected change in 'F:\\VSCode\\ODH_SmartJourney\\script\\Backend.py', reloading
+2025-01-09 17:18:01,946 - INFO -  * Restarting with stat
+2025-01-09 17:18:02,707 - WARNING -  * Debugger is active!
+2025-01-09 17:18:02,708 - INFO -  * Debugger PIN: 157-963-222
+2025-01-09 17:18:04,953 - INFO - 127.0.0.1 - - [09/Jan/2025 17:18:04] "[35m[1mPOST /generate-itinerary HTTP/1.1[0m" 500 -
+2025-01-09 17:29:52,680 - INFO - 127.0.0.1 - - [09/Jan/2025 17:29:52] "POST /predict HTTP/1.1" 200 -
+2025-01-09 17:47:19,664 - INFO -  * Detected change in 'F:\\VSCode\\ODH_SmartJourney\\script\\Backend.py', reloading
+2025-01-09 17:47:19,758 - INFO -  * Restarting with stat
