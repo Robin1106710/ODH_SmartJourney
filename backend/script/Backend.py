@@ -5,8 +5,10 @@ import os
 import pickle
 import pandas as pd
 from math import radians, sin, cos, sqrt, atan2
+from flask_cors import CORS  # Import CORS
 
 app = Flask(__name__)
+CORS(app, origins="http://localhost:5173")  # Allow requests from your frontend port
 
 # Load model and vectorizer
 model_path = os.path.join(".", "models", "decision_tree_model.pkl")
@@ -138,6 +140,7 @@ def generate_itinerary():
     Generate an itinerary based on user preferences.
     """
     try:
+    
         # Load locations from CSV
         locations_df = load_locations()
         if locations_df is None:
