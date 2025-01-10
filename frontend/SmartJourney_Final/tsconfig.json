@@ -1,0 +1,12 @@
+{
+  "compilerOptions": {
+    "esModuleInterop": true,
+    "baseUrl": "src",  // Make sure this points to the "src" directory
+    "paths": {
+      "@/*": ["*"]  // This tells TypeScript that "@" refers to the "src" directory
+    },
+    "strict": true,  // Optional: enables strict mode (helps catch more issues)
+    "jsx": "react-jsx" // Ensure this is set if you're using JSX
+  },
+  "include": ["src/**/*"]  // Ensure all files in the "src" directory are included
+}
