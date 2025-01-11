@@ -2,11 +2,14 @@ import React, { useState } from 'react';
 import { FaChevronLeft, FaChevronRight, FaTimes } from 'react-icons/fa';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DndContext, DragEndEvent, useDraggable, useDroppable } from '@dnd-kit/core';
+import { fetchGoogleDirections } from '../utils/utils'; // Assuming you have a fetchGoogleDirections function
 
 interface ItineraryItem {
   from: string;
-  time_at_location: string;
   to: string;
+  from_latlng: string;
+  to_latlng: string;
+  time_at_location: string;
   transport_mode: string; // Transport mode, e.g., 'Car', 'Walking'
   travel_time: string; // Travel time, e.g., '30 mins'
 }
@@ -26,7 +29,33 @@ export default function ItineraryView({ days, setDays }: ItineraryViewProps) {
   const [confirmDelete, setConfirmDelete] = useState(false); // State for confirmation dialog
   const [eventToDelete, setEventToDelete] = useState<ItineraryItem | null>(null); // Event to delete
 
-  const handleDragEnd = (event: DragEndEvent) => {
+  // Function to update travel details (calculate transport mode and travel time)
+  const updateTravelDetails = async (updatedItinerary: ItineraryItem[]) => {
+    let totalTime = 0;
+    for (let i = 0; i < updatedItinerary.length - 1; i++) {
+      const currentItem = updatedItinerary[i];
+      const nextItem = updatedItinerary[i + 1];
+
+      console.log("Update Travel details", "From " + currentItem.from + " (" + currentItem.from_latlng + ") - " + "To " + nextItem.from + " (" + nextItem.from_latlng + ")")
+      // Fetch travel details between two consecutive locations
+      const { travel_time, transport_mode } = await fetchGoogleDirections(currentItem.from_latlng, nextItem.from_latlng);
+
+      // Update travel time and transport mode
+      updatedItinerary[i].travel_time = travel_time;
+      updatedItinerary[i].transport_mode = transport_mode;
+
+      // Update total time (time_at_location + travel_time between events)
+      totalTime += parseInt(currentItem.time_at_location) + parseInt(travel_time.split(' ')[0]);
+    }
+
+    setDays(prevDays => {
+      const updatedDays = [...prevDays];
+      updatedDays[currentDay].itinerary = updatedItinerary;
+      return updatedDays;
+    });
+  };
+
+  const handleDragEnd = async (event: DragEndEvent) => {
     const { active, over } = event;
 
     if (!over) return;
@@ -40,9 +69,8 @@ export default function ItineraryView({ days, setDays }: ItineraryViewProps) {
     const [movedItem] = newItinerary.splice(activeIndex, 1);
     newItinerary.splice(overIndex, 0, movedItem);
 
-    const updatedDays = [...days];
-    updatedDays[currentDay].itinerary = newItinerary;
-    setDays(updatedDays); // Update the parent state with the new itinerary
+    // Recalculate travel details for the updated itinerary
+    await updateTravelDetails(newItinerary);
   };
 
   const goToNextDay = () => setCurrentDay(prevDay => (prevDay < days.length - 1 ? prevDay + 1 : prevDay));
@@ -71,7 +99,6 @@ export default function ItineraryView({ days, setDays }: ItineraryViewProps) {
           <CardTitle>Your Itinerary for {days[currentDay].date}</CardTitle>
         </CardHeader>
         <CardContent>
-
           {/* Event Column */}
           <div className=''>
             {days[currentDay].itinerary.map((item, index) => (
@@ -88,7 +115,6 @@ export default function ItineraryView({ days, setDays }: ItineraryViewProps) {
                   </div>
                 </div>
               </div>
-
             ))}
           </div>
         </CardContent>
@@ -145,7 +171,7 @@ const DraggableItem = ({ item, index, onDelete }: { item: ItineraryItem; index: 
   const draggingStyle = isDragging ? { transform: 'scale(1.05)', boxShadow: '0 4px 10px rgba(0,0,0,0.2)', opacity: 0.9 } : {};
 
   const handleCancelClick = (e: React.MouseEvent) => {
-    console.log("debug")
+    console.log("debug");
     e.stopPropagation(); // Prevent dragging interaction
     onDelete(item);
   };
@@ -169,6 +195,5 @@ const DraggableItem = ({ item, index, onDelete }: { item: ItineraryItem; index: 
         <FaTimes />
       </button>
     </div>
-
   );
 };

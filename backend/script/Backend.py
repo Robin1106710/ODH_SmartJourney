@@ -211,9 +211,11 @@ def generate_itinerary():
             itinerary.append({
                 "from": current_location["en_name"],
                 "to": location["en_name"],
+                "from_latlng": f"{current_location['Latitude']},{current_location['Longitude']}",
+                "to_latlng": f"{location['Latitude']},{location['Longitude']}",
                 "travel_time": travel_time,
                 "transport_mode": transport_mode,
-                "time_at_location": location["estimated_time"]
+                "time_at_location": location["estimated_time"],
             })
 
             # Update total time used and current location
@@ -228,6 +230,56 @@ def generate_itinerary():
         error_message = f"Error generating itinerary: {str(e)}"
         logging.error(error_message)
         return jsonify({"error": error_message}), 500
+
+@app.route('/get-directions', methods=['POST'])
+def get_directions():
+    try:
+        data = request.json
+        # Ensure both origin and destination are provided
+        if 'origin' not in data or 'destination' not in data:
+            return jsonify({'error': 'Missing origin or destination'}), 400
+
+        origin = data['origin']
+        destination = data['destination']
+
+        # The rest of your logic...
+        url = "https://maps.googleapis.com/maps/api/directions/json"
+        params = {
+            "origin": origin,
+            "destination": destination,
+            "mode": "transit",  # or 'walking' for walking directions
+            "departure_time": "now",
+            "key": GOOGLE_API_KEY
+        }
+
+        # Your logic to fetch directions using Google API
+        response = requests.get(url, params=params)
+        response_data = response.json()
+
+        # Further processing...
+        if response_data['status'] == 'OK' and response_data.get('routes'):
+            route = response_data['routes'][0]
+            leg = route['legs'][0]
+            travel_time = leg['duration']['text']
+            transport_modes = []
+
+            for step in leg['steps']:
+                if 'transit_details' in step:
+                    transport_modes.append(step['transit_details']['line']['vehicle']['type'])
+                elif step['travel_mode'] == 'WALKING':
+                    transport_modes.append('WALKING')
+
+            transport_mode = ', '.join(transport_modes) if transport_modes else 'Unknown transport mode'
+
+            return jsonify({
+                'travel_time': travel_time,
+                'transport_mode': transport_mode
+            })
+
+        return jsonify({'error': 'Unable to fetch directions'}), 500
+
+    except Exception as e:
+        return jsonify({'error': f'Error: {str(e)}'}), 500
 
 
 if __name__ == '__main__':

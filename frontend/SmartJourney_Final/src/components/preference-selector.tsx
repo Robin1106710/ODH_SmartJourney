@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge"
 
 // Define the preferences available for selection
 const preferences = [
-  'historial', 'shopping', 'literature_art', 'family', 'educational'
+  'historial', 'shopping', 'literature_art', 'family', 'educational', 'nature', 'entertainment', 'romantic', 'relaxation'
 ]
 
 interface PreferenceSelectorProps {
