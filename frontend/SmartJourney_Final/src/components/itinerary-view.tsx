@@ -75,7 +75,7 @@ export default function ItineraryView({ days, setDays }: ItineraryViewProps) {
           {/* Event Column */}
           <div className=''>
             {days[currentDay].itinerary.map((item, index) => (
-              <div className="relative">
+              <div className="relative" key={index}>
                 <DraggableItem key={index} index={index} item={item} onDelete={handleDeleteEvent} />
 
                 <div className="flex justify-center items-center h-full space-x-2">
@@ -144,22 +144,31 @@ const DraggableItem = ({ item, index, onDelete }: { item: ItineraryItem; index: 
 
   const draggingStyle = isDragging ? { transform: 'scale(1.05)', boxShadow: '0 4px 10px rgba(0,0,0,0.2)', opacity: 0.9 } : {};
 
+  const handleCancelClick = (e: React.MouseEvent) => {
+    console.log("debug")
+    e.stopPropagation(); // Prevent dragging interaction
+    onDelete(item);
+  };
+
   return (
-    <div
-      ref={setNodeRef}
-      {...listeners}
-      {...attributes}
-      className="flex justify-between items-start p-4 bg-[#e1dcfb] rounded-lg shadow-sm transition-all duration-300 ease-in-out"
-      style={{ ...draggingStyle }}
-    >
-      <div ref={setDroppableNodeRef}>
-        <p className="font-semibold">{item.from}</p>
-        <p className="text-sm text-gray-500">{item.to}</p>
-        <p className="text-sm text-gray-500">{item.time_at_location}</p>
+    <div className='relative'>
+      <div
+        ref={setNodeRef}
+        {...listeners}
+        {...attributes}
+        className="flex justify-between items-start p-4 bg-[#e1dcfb] rounded-lg shadow-sm transition-all duration-300 ease-in-out"
+        style={{ ...draggingStyle }}
+      >
+        <div ref={setDroppableNodeRef}>
+          <p className="font-semibold">{item.from}</p>
+          <p className="text-sm text-gray-500">{item.to}</p>
+          <p className="text-sm text-gray-500">{item.time_at_location}</p>
+        </div>
       </div>
-      <button onClick={() => onDelete(item)} className="text-red-500 hover:text-red-700">
+      <button onClick={handleCancelClick} className="absolute top-4 right-4 text-red-500 hover:text-red-700">
         <FaTimes />
       </button>
     </div>
+
   );
 };

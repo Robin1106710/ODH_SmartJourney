@@ -31,7 +31,7 @@ const Preferences = () => {
       if (data.itinerary) {
         // Log the itinerary to check if it's returned correctly
         console.log('Generated Itinerary:', data.itinerary)
-  
+        localStorage.setItem("itinerary", JSON.stringify(data.itinerary));
         // If the itinerary is valid, navigate to the itinerary page with the data
         navigate('/itinerary', { state: { itinerary: data.itinerary } })
       } else {
