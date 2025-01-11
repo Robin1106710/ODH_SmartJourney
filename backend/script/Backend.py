@@ -11,8 +11,8 @@ app = Flask(__name__)
 CORS(app, origins="http://localhost:5173")  # Allow requests from your frontend port
 
 # Load model and vectorizer
-model_path = os.path.join(".", "models", "decision_tree_model.pkl")
-vectorizer_path = os.path.join(".", "models", "tfidf_vectorizer.pkl")
+model_path = os.path.join("backend", "models", "decision_tree_model.pkl")
+vectorizer_path = os.path.join("backend", "models", "tfidf_vectorizer.pkl")
 
 try:
     with open(model_path, "rb") as model_file:
@@ -29,7 +29,7 @@ except Exception as e:
 GOOGLE_API_KEY = "AIzaSyBzt20CrO0kw1_pULcAVONkxt-JPH7x6XE"
 
 # Path to locations CSV
-locations_csv_path = os.path.join(".", "data", "locations.csv")
+locations_csv_path = os.path.join("backend", "data", "locations.csv")
 
 # Load the locations from the CSV file
 def load_locations():
@@ -140,7 +140,6 @@ def generate_itinerary():
     Generate an itinerary based on user preferences.
     """
     try:
-    
         # Load locations from CSV
         locations_df = load_locations()
         if locations_df is None:
@@ -209,8 +208,16 @@ def generate_itinerary():
 
             # Add the location to the itinerary
             itinerary.append({
-                "from": current_location["en_name"],
-                "to": location["en_name"],
+                "from": {
+                    "name": current_location["en_name"],
+                    "latitude": current_location["Latitude"],
+                    "longitude": current_location["Longitude"]
+                },
+                "to": {
+                    "name": location["en_name"],
+                    "latitude": location["Latitude"],
+                    "longitude": location["Longitude"]
+                },
                 "travel_time": travel_time,
                 "transport_mode": transport_mode,
                 "time_at_location": location["estimated_time"]
@@ -228,7 +235,6 @@ def generate_itinerary():
         error_message = f"Error generating itinerary: {str(e)}"
         logging.error(error_message)
         return jsonify({"error": error_message}), 500
-
 
 if __name__ == '__main__':
     app.run(debug=True)
