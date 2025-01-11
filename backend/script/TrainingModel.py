@@ -37,11 +37,11 @@ def train_model():
 
     # Split the data into training and testing sets
     print("Splitting data into training and testing sets...")
-    X_train, X_test, y_train, y_test = train_test_split(X_tfidf, y, test_size=0.1, random_state=42)
+    X_train, X_test, y_train, y_test = train_test_split(X_tfidf, y, test_size=0.2, random_state=42)
 
     # Train a Logistic Regression classifier
     print("Training Logistic Regression model...")
-    clf = LogisticRegression(max_iter=1000)  # Increase max_iter if convergence issues arise
+    clf = LogisticRegression(max_iter=5000)  # Increase max_iter if convergence issues arise
     clf.fit(X_train, y_train)
 
     # Evaluate the model
@@ -53,7 +53,7 @@ def train_model():
     print(classification_report(y_test, y_pred))
 
     # Ensure the 'models' directory exists
-    os.makedirs(os.path.join(".", "models"), exist_ok=True)
+    os.makedirs(os.path.join("backend", "models"), exist_ok=True)
 
     # Define paths for saving model and vectorizer
     model_path = os.path.join("backend", "models", "logistic_regression_model.pkl")

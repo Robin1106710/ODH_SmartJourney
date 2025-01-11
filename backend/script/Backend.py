@@ -11,7 +11,7 @@ app = Flask(__name__)
 CORS(app, origins="http://localhost:5173")  # Allow requests from your frontend port
 
 # Load model and vectorizer
-model_path = os.path.join("backend", "models", "decision_tree_model.pkl")
+model_path = os.path.join("backend", "models", "logistic_regression_model.pkl")
 vectorizer_path = os.path.join("backend", "models", "tfidf_vectorizer.pkl")
 
 try:
@@ -32,6 +32,7 @@ GOOGLE_API_KEY = "AIzaSyBzt20CrO0kw1_pULcAVONkxt-JPH7x6XE"
 locations_csv_path = os.path.join("backend", "data", "locations.csv")
 
 # Load the locations from the CSV file
+# Load the locations from the CSV file
 def load_locations():
     try:
         locations_df = pd.read_csv(locations_csv_path)
@@ -41,10 +42,15 @@ def load_locations():
         locations_df["literature_art"] = locations_df["literature_art"].astype(bool)
         locations_df["family"] = locations_df["family"].astype(bool)
         locations_df["educational"] = locations_df["educational"].astype(bool)
+        locations_df["nature"] = locations_df["nature"].astype(bool) 
+        locations_df["entertainment"] = locations_df["entertainment"].astype(bool)  
+        locations_df["romantic"] = locations_df["romantic"].astype(bool)  
+        locations_df["relaxation"] = locations_df["relaxation"].astype(bool)  
         return locations_df
     except FileNotFoundError:
         print(f"Error: File not found at {locations_csv_path}")
         return None
+
 
 # Haversine formula for distance calculation
 def calculate_distance(lat1, lon1, lat2, lon2):
@@ -56,44 +62,53 @@ def calculate_distance(lat1, lon1, lat2, lon2):
     return R * c
 
 # Fetch real-time travel details using Google Directions API
+# Fetch real-time travel details using Google Directions API
 def fetch_google_directions(origin, destination):
     """
     Fetch real-time travel time and recommended transportation mode using Google Directions API.
-    Restricts to public transport (transit) and walking.
+    Restricts to all public transport (transit) and walking with a walking time limit of 30 minutes.
     """
     try:
-        # Transit request
+        # Google Directions API endpoint
         url = "https://maps.googleapis.com/maps/api/directions/json"
+
+        # Transit request parameters
         params = {
             "origin": origin,  # Latitude,Longitude
             "destination": destination,  # Latitude,Longitude
-            "mode": "transit",  # Only public transport
-            "departure_time": "now",  # For real-time travel time
+            "mode": "transit",  # Public transport mode
+            "departure_time": "now",  # Use real-time departure times
             "key": GOOGLE_API_KEY
         }
+
+        # Fetch transit data
         response = requests.get(url, params=params)
         data = response.json()
 
         # Validate the response for public transport
         if data.get("status") == "OK" and "routes" in data and len(data["routes"]) > 0:
-            route = data["routes"][0]
-            leg = route["legs"][0]
-            travel_time = leg["duration"]["text"]
-            steps = leg.get("steps", [])
+            route = data["routes"][0]  # Get the best route
+            leg = route["legs"][0]  # Get the first leg of the route
+            travel_time = leg["duration"]["text"]  # Travel time for the leg
+            steps = leg.get("steps", [])  # Steps in the route
 
-            # Extract transport modes (filter only transit and walking)
+            # Extract transport modes (e.g., BUS, SUBWAY, FERRY, WALKING)
             modes = []
             for step in steps:
-                if "transit_details" in step:  # Public transport details
-                    modes.append(step["transit_details"]["line"]["vehicle"]["type"])
-                elif step.get("travel_mode") == "WALKING":  # Walking
+                if "transit_details" in step:  # If it's a public transport step
+                    transit_type = step["transit_details"]["line"]["vehicle"]["type"]
+                    modes.append(transit_type)
+                elif step.get("travel_mode") == "WALKING":  # If it's a walking step
+                    walking_duration = step["duration"]["value"] / 60  # Convert seconds to minutes
+                    if walking_duration > 30:
+                        return "Path exceeds walking limit", "Cannot generate path"
                     modes.append("WALKING")
 
             transport_modes = ", ".join(set(modes)) if modes else "Unknown transport mode"
             return travel_time, transport_modes
 
         # If no valid transit route is available, fallback to walking
-        logging.warning("No transit routes available, falling back to walking.")
+        logging.warning("No transit routes available, attempting walking.")
         params["mode"] = "walking"  # Change mode to walking
         response = requests.get(url, params=params)
         data = response.json()
@@ -101,15 +116,19 @@ def fetch_google_directions(origin, destination):
         if data.get("status") == "OK" and "routes" in data and len(data["routes"]) > 0:
             route = data["routes"][0]
             leg = route["legs"][0]
+            walking_duration = leg["duration"]["value"] / 60  # Convert seconds to minutes
+            if walking_duration > 30:
+                return "Walking time exceeds limit", "Cannot generate path"
             travel_time = leg["duration"]["text"]
             return travel_time, "WALKING"
 
         # If no routes are found even for walking
-        return "Unknown travel time", "Unknown transport mode"
+        return "No valid routes", "Cannot generate path"
 
     except Exception as e:
         logging.error(f"Error fetching directions: {str(e)}")
         return "Error fetching travel time", "Error fetching transport mode"
+
 
 @app.route('/predict', methods=['POST'])
 def predict():
@@ -151,7 +170,11 @@ def generate_itinerary():
             "shopping": data.get("shopping", False),
             "literature_art": data.get("literature_art", False),
             "family": data.get("family", False),
-            "educational": data.get("educational", False)
+            "educational": data.get("educational", False),
+            "nature": data.get("nature", False), 
+            "entertainment": data.get("entertainment", False), 
+            "romantic": data.get("romantic", False), 
+            "relaxation": data.get("relaxation", False)  
         }
         start_point_id = data.get("start_point_ID")
         time_limit = data.get("time_limit")
@@ -160,13 +183,19 @@ def generate_itinerary():
             return jsonify({"error": "Start point and time limit are required"}), 400
 
         # Filter locations by preferences
+        # Filter locations by preferences
         filtered_locations = locations_df[
             (locations_df["historial"] == preferences["historial"]) |
             (locations_df["shopping"] == preferences["shopping"]) |
             (locations_df["literature_art"] == preferences["literature_art"]) |
             (locations_df["family"] == preferences["family"]) |
-            (locations_df["educational"] == preferences["educational"])
+            (locations_df["educational"] == preferences["educational"]) |
+            (locations_df["nature"] == preferences["nature"]) |  
+            (locations_df["entertainment"] == preferences["entertainment"]) | 
+            (locations_df["romantic"] == preferences["romantic"]) | 
+            (locations_df["relaxation"] == preferences["relaxation"]) 
         ]
+
 
         if filtered_locations.empty:
             return jsonify({"error": "No locations match your preferences."})
@@ -235,6 +264,93 @@ def generate_itinerary():
         error_message = f"Error generating itinerary: {str(e)}"
         logging.error(error_message)
         return jsonify({"error": error_message}), 500
+
+
+def get_transportation_details(location1, location2):
+    try:
+        url = "https://maps.googleapis.com/maps/api/directions/json"
+        params = {
+            "origin": f"{location1['Latitude']},{location1['Longitude']}",
+            "destination": f"{location2['Latitude']},{location2['Longitude']}",
+            "mode": "transit",
+            "departure_time": "now",
+            "key": GOOGLE_API_KEY
+        }
+        response = requests.get(url, params=params)
+        data = response.json()
+
+        # Log the full API response for debugging
+        logging.info(f"Google Directions API Response: {data}")
+
+        if data.get("status") != "OK":
+            logging.error(f"Google API error: {data.get('status')} - {data.get('error_message', 'No error message')}")
+            return {
+                "transport_time": "Unknown travel time",
+                "transport_method": "Unknown transport mode",
+                "route_details": []
+            }
+
+        # Process valid response
+        route = data["routes"][0]
+        leg = route["legs"][0]
+        travel_time = leg["duration"]["text"]
+        steps = leg.get("steps", [])
+        modes = []
+        route_details = []
+        for step in steps:
+            if "transit_details" in step:
+                transit_type = step["transit_details"]["line"]["vehicle"]["type"]
+                transit_name = step["transit_details"]["line"].get("short_name", "Unnamed Line")
+                transit_stop = step["transit_details"]["departure_stop"]["name"]
+                route_details.append(f"Take {transit_type} {transit_name} from {transit_stop}.")
+                modes.append(transit_type)
+            elif step.get("travel_mode") == "WALKING":
+                walking_distance = step["distance"]["text"]
+                walking_duration = step["duration"]["text"]
+                route_details.append(f"Walk for {walking_distance} ({walking_duration}).")
+                modes.append("WALKING")
+
+        transport_modes = ", ".join(set(modes)) if modes else "Unknown transport mode"
+        return {
+            "transport_time": travel_time,
+            "transport_method": transport_modes,
+            "route_details": route_details
+        }
+
+    except Exception as e:
+        logging.error(f"Error fetching transportation details: {str(e)}")
+        return {
+            "transport_time": "Error fetching travel time",
+            "transport_method": "Error fetching transport mode",
+            "route_details": []
+        }
+
+
+@app.route('/get-transportation', methods=['POST'])
+def get_transportation():
+    """
+    API endpoint to fetch transportation details between two locations.
+    """
+    try:
+        # Parse request data
+        data = request.json
+        location1 = data.get("location1")  # Expected: {"Latitude": ..., "Longitude": ...}
+        location2 = data.get("location2")  # Expected: {"Latitude": ..., "Longitude": ...}
+
+        if not location1 or not location2:
+            return jsonify({"error": "Both location1 and location2 are required"}), 400
+
+        # Fetch transportation details
+        result = get_transportation_details(location1, location2)
+
+        # Return the result
+        return jsonify(result)
+
+    except Exception as e:
+        logging.error(f"Error in /get-transportation: {str(e)}")
+        return jsonify({"error": "Error fetching transportation details"}), 500
+
+
 
 if __name__ == '__main__':
     app.run(debug=True)
