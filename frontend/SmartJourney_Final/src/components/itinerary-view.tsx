@@ -3,6 +3,7 @@ import { FaChevronLeft, FaChevronRight, FaTimes } from 'react-icons/fa';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DndContext, DragEndEvent, useDraggable, useDroppable } from '@dnd-kit/core';
 import { fetchGoogleDirections } from '../utils/utils'; // Assuming you have a fetchGoogleDirections function
+import EventDetailModal from './EventDetailModal';  // Import the modal component
 
 interface ItineraryItem {
   from: string;
@@ -28,6 +29,8 @@ export default function ItineraryView({ days, setDays }: ItineraryViewProps) {
   const [currentDay, setCurrentDay] = useState(0); // Track the current day (0 is day 1)
   const [confirmDelete, setConfirmDelete] = useState(false); // State for confirmation dialog
   const [eventToDelete, setEventToDelete] = useState<ItineraryItem | null>(null); // Event to delete
+  const [isModalOpen, setIsModalOpen] = useState(false); // State to control modal visibility
+  const [selectedEvent, setSelectedEvent] = useState<ItineraryItem | null>(null); // Store selected event for modal
 
   // Function to update travel details (calculate transport mode and travel time)
   const updateTravelDetails = async (updatedItinerary: ItineraryItem[]) => {
@@ -35,18 +38,24 @@ export default function ItineraryView({ days, setDays }: ItineraryViewProps) {
     for (let i = 0; i < updatedItinerary.length - 1; i++) {
       const currentItem = updatedItinerary[i];
       const nextItem = updatedItinerary[i + 1];
-
-      console.log("Update Travel details", "From " + currentItem.from + " (" + currentItem.from_latlng + ") - " + "To " + nextItem.from + " (" + nextItem.from_latlng + ")")
+  
+      console.log("Update Travel details", "From " + currentItem.from + " (" + currentItem.from_latlng + ") - " + "To " + nextItem.from + " (" + nextItem.from_latlng + ")");
+      
       // Fetch travel details between two consecutive locations
       const { travel_time, transport_mode } = await fetchGoogleDirections(currentItem.from_latlng, nextItem.from_latlng);
-
+  
       // Update travel time and transport mode
       updatedItinerary[i].travel_time = travel_time;
       updatedItinerary[i].transport_mode = transport_mode;
-
+  
       // Update total time (time_at_location + travel_time between events)
       totalTime += parseInt(currentItem.time_at_location) + parseInt(travel_time.split(' ')[0]);
     }
+  
+    // For the last event, no travel time is calculated
+    const lastEvent = updatedItinerary[updatedItinerary.length - 1];
+    lastEvent.travel_time = '';  // Set the travel time for the last event as "No travel time"
+    lastEvent.transport_mode = '';  // Set the travel time for the last event as "No travel time"
 
     setDays(prevDays => {
       const updatedDays = [...prevDays];
@@ -54,6 +63,7 @@ export default function ItineraryView({ days, setDays }: ItineraryViewProps) {
       return updatedDays;
     });
   };
+  
 
   const handleDragEnd = async (event: DragEndEvent) => {
     const { active, over } = event;
@@ -71,6 +81,16 @@ export default function ItineraryView({ days, setDays }: ItineraryViewProps) {
 
     // Recalculate travel details for the updated itinerary
     await updateTravelDetails(newItinerary);
+  };
+
+  const handleOpenModal = (event: ItineraryItem) => {
+    setSelectedEvent(event);
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSelectedEvent(null);
   };
 
   const goToNextDay = () => setCurrentDay(prevDay => (prevDay < days.length - 1 ? prevDay + 1 : prevDay));
@@ -108,12 +128,19 @@ export default function ItineraryView({ days, setDays }: ItineraryViewProps) {
                 <div className="flex justify-center items-center h-full space-x-2">
                   <span className="block bg-gray-300 w-1 h-20"></span>
 
-                  <div className="absolute text-sm left-6 bottom-0 flex flex-col justify-center">
-                    <span>From: {item.from}</span>
-                    <span>to {item.to}</span>
+                  <div className="absolute text-sm left-6 flex flex-col justify-center">
+                    {/* <span>From: {item.from}</span>
+                    <span>to {item.to}</span> */}
                     <span>{item.transport_mode} {item.travel_time}</span>
                   </div>
                 </div>
+                {/* Button to open the event details modal */}
+                <button
+                  onClick={() => handleOpenModal(item)}
+                  className="absolute top-3 right-12 text-blue-500 hover:text-blue-700"
+                >
+                  View Details
+                </button>
               </div>
             ))}
           </div>
@@ -146,6 +173,12 @@ export default function ItineraryView({ days, setDays }: ItineraryViewProps) {
           </div>
         </div>
       )}
+      {/* Event Detail Modal */}
+      <EventDetailModal
+        isOpen={isModalOpen}
+        event={selectedEvent}
+        onClose={handleCloseModal}
+      />
     </DndContext>
   );
 }
@@ -171,7 +204,6 @@ const DraggableItem = ({ item, index, onDelete }: { item: ItineraryItem; index: 
   const draggingStyle = isDragging ? { transform: 'scale(1.05)', boxShadow: '0 4px 10px rgba(0,0,0,0.2)', opacity: 0.9 } : {};
 
   const handleCancelClick = (e: React.MouseEvent) => {
-    console.log("debug");
     e.stopPropagation(); // Prevent dragging interaction
     onDelete(item);
   };
@@ -187,8 +219,8 @@ const DraggableItem = ({ item, index, onDelete }: { item: ItineraryItem; index: 
       >
         <div ref={setDroppableNodeRef}>
           <p className="font-semibold">{item.from}</p>
-          <p className="text-sm text-gray-500">{item.to}</p>
-          <p className="text-sm text-gray-500">{item.time_at_location}</p>
+          {/* <p className="text-sm text-gray-500">{item.to}</p> */}
+          <p className="text-sm text-gray-500">Recommend spend time: {item.time_at_location}</p>
         </div>
       </div>
       <button onClick={handleCancelClick} className="absolute top-4 right-4 text-red-500 hover:text-red-700">
