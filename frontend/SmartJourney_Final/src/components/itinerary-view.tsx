@@ -21,6 +21,7 @@ export default function ItineraryView({ days, setDays }: ItineraryViewProps) {
 
   // State for adding a new event
   const [newEvent, setNewEvent] = useState<ItineraryItem>({
+    id: 999,
     from: { name: '', latitude: 0, longitude: 0 },
     to: { name: '', latitude: 0, longitude: 0 },
     time_at_location: '',
@@ -64,6 +65,7 @@ export default function ItineraryView({ days, setDays }: ItineraryViewProps) {
   const handleAddEvent = () => {
     const updatedItinerary = [...days[currentDay].itinerary, newEvent];
     setNewEvent({
+      id: 999,
       from: { name: '', latitude: 0, longitude: 0 },
       to: { name: '', latitude: 0, longitude: 0 },
       time_at_location: '',

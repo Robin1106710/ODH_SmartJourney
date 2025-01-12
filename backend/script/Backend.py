@@ -1,4 +1,4 @@
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, send_from_directory
 import requests
 import logging
 import os
@@ -240,7 +240,7 @@ def generate_itinerary():
 
             # Add the location to the itinerary
             itinerary.append({
-                "id": int(current_location["ID"]),
+                "id": int(location["ID"]),
                 "from": {
                     "name": current_location["en_name"],
                     "latitude": current_location["Latitude"],
@@ -359,6 +359,8 @@ def get_transportation():
 @app.route('/location-details/<int:location_id>', methods=['GET'])
 def location_details(location_id):
     try:
+        print(f"Requested Location ID: {location_id}")
+
         # Load locations from CSV
         locations_df = load_locations()
         if locations_df is None:
@@ -379,7 +381,7 @@ def location_details(location_id):
         location = location.iloc[0]
 
         # Load descriptions from the attraction_description.csv
-        description_csv_path = os.path.join("backend", "data", "attraction_details", "attraction_description.csv")
+        description_csv_path = os.path.join("data", "attraction_details", "attraction_images.csv")
         description_df = pd.read_csv(description_csv_path)
 
         # Ensure IDs in the description file are integers
@@ -396,7 +398,7 @@ def location_details(location_id):
         opening_hour = description_data["Opening Hour"]
 
         # Construct the image path
-        image_path = os.path.join("backend", "data", "attraction_details", "attraction_images", f"{location_id}.jpg")
+        image_path = os.path.join( "data", "attraction_details", "attraction_images", f"{location_id}.jpg")
         if not os.path.exists(image_path):
             logging.warning(f"Image for location ID {location_id} not found.")
             image_url = None  # Set to None if the image doesn't exist
@@ -413,12 +415,23 @@ def location_details(location_id):
             "Opening Hour": opening_hour,
             "Image": image_url,
         }
+        print(jsonify(response))
         return jsonify(response)
 
     except Exception as e:
         logging.error(f"Error in /location-details: {str(e)}")
         return jsonify({"error": f"Error fetching location details: {str(e)}"}), 500
 
+# Define the path to the images folder
+images_folder = os.path.join("data", "attraction_details", "attraction_images")
+
+# Serve images from the images folder
+@app.route('/images/<filename>')
+def serve_image(filename):
+    try:
+        return send_from_directory(images_folder, filename)
+    except FileNotFoundError:
+        return jsonify({"error": "Image not found"}), 404
 
 if __name__ == '__main__':
     app.run(debug=True)
