@@ -1,24 +1,14 @@
 import React, { useEffect, useState } from "react";
 import { GoogleMap, LoadScript, Marker, Polyline } from "@react-google-maps/api";
+import { ItineraryItem } from "@/type";
 
 interface Location {
   lat: number;
   lng: number;
   label: string;
 }
-
-interface ItineraryItem {
-  from: string;
-  to: string;
-  from_latlng: string;
-  to_latlng: string;
-  time_at_location: string;
-  transport_mode: string; // Transport mode, e.g., 'Car', 'Walking'
-  travel_time: string; // Travel time, e.g., '30 mins'
-}
-
 interface MapViewProps {
-  days: { date: string; itinerary: ItineraryItem[] }[]; // Receive the itinerary data from parent
+  days: { itinerary: ItineraryItem[] }[]; // Receive the itinerary data from parent
 }
 
 const containerStyle = {
@@ -32,10 +22,10 @@ const MapView123: React.FC<MapViewProps> = ({ days }) => {
   // Collect all itinerary items from all days into one array
   const locations: Location[] = days.flatMap(day =>
     day.itinerary.map(item => {
-      const [lat, lng] = item.from_latlng.split(",").map(Number); // Parse lat, lng from the from_latlng field
+      // const [lat, lng] = item.from_latlng.split(",").map(Number); // Parse lat, lng from the from_latlng field
       return {
-        lat: lat,
-        lng: lng,
+        lat: item.from.latitude,
+        lng: item.from.longitude,
         label: `${item.from} to ${item.to}`, // Create label with both locations
       };
     })
@@ -96,7 +86,7 @@ const MapView123: React.FC<MapViewProps> = ({ days }) => {
             {/* Draw a polyline for each day's itinerary with a unique color */}
             {days.map((day, dayIndex) => {
               const dayLocations = day.itinerary.map((item) => {
-                const [lat, lng] = item.from_latlng.split(",").map(Number); // Parse lat, lng
+                const [lat, lng] = [item.from.latitude, item.from.longitude]
                 return {
                   lat,
                   lng,

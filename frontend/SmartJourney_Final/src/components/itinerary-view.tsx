@@ -4,21 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DndContext, DragEndEvent, useDraggable, useDroppable } from '@dnd-kit/core';
 import { fetchGoogleDirections } from '../utils/utils'; // Assuming you have a fetchGoogleDirections function
 import EventDetailModal from './EventDetailModal';  // Import the modal component
-
-interface ItineraryItem {
-  from: string;
-  to: string;
-  from_latlng: string;
-  to_latlng: string;
-  time_at_location: string;
-  transport_mode: string; // Transport mode, e.g., 'Car', 'Walking'
-  travel_time: string; // Travel time, e.g., '30 mins'
-}
-
-interface DayItinerary {
-  date: string;
-  itinerary: ItineraryItem[];
-}
+import { DayItinerary, ItineraryItem } from '@/type';
 
 interface ItineraryViewProps {
   days: DayItinerary[];
@@ -35,27 +21,27 @@ export default function ItineraryView({ days, setDays }: ItineraryViewProps) {
   // Function to update travel details (calculate transport mode and travel time)
   const updateTravelDetails = async (updatedItinerary: ItineraryItem[]) => {
     let totalTime = 0;
-    for (let i = 0; i < updatedItinerary.length - 1; i++) {
+    for (let i = 0; i < updatedItinerary.length - 1; i++) {  // Exclude the last event
       const currentItem = updatedItinerary[i];
       const nextItem = updatedItinerary[i + 1];
-  
-      console.log("Update Travel details", "From " + currentItem.from + " (" + currentItem.from_latlng + ") - " + "To " + nextItem.from + " (" + nextItem.from_latlng + ")");
-      
+
+      console.log("Update Travel details", "From " + currentItem.from.name + " - To " + nextItem.from.name);
+
       // Fetch travel details between two consecutive locations
-      const { travel_time, transport_mode } = await fetchGoogleDirections(currentItem.from_latlng, nextItem.from_latlng);
-  
+      const { travel_time, transport_mode } = await fetchGoogleDirections(`${currentItem.from.latitude},${currentItem.from.longitude}`, `${nextItem.from.latitude},${nextItem.from.longitude}`);
+
       // Update travel time and transport mode
       updatedItinerary[i].travel_time = travel_time;
       updatedItinerary[i].transport_mode = transport_mode;
-  
+
       // Update total time (time_at_location + travel_time between events)
       totalTime += parseInt(currentItem.time_at_location) + parseInt(travel_time.split(' ')[0]);
     }
-  
+
     // For the last event, no travel time is calculated
     const lastEvent = updatedItinerary[updatedItinerary.length - 1];
-    lastEvent.travel_time = '';  // Set the travel time for the last event as "No travel time"
-    lastEvent.transport_mode = '';  // Set the travel time for the last event as "No travel time"
+    lastEvent.travel_time = '';  // No transport details for the last event
+    lastEvent.transport_mode = '';
 
     setDays(prevDays => {
       const updatedDays = [...prevDays];
@@ -63,7 +49,6 @@ export default function ItineraryView({ days, setDays }: ItineraryViewProps) {
       return updatedDays;
     });
   };
-  
 
   const handleDragEnd = async (event: DragEndEvent) => {
     const { active, over } = event;
@@ -116,7 +101,7 @@ export default function ItineraryView({ days, setDays }: ItineraryViewProps) {
     <DndContext onDragEnd={handleDragEnd}>
       <Card>
         <CardHeader>
-          <CardTitle>Your Itinerary for {days[currentDay].date}</CardTitle>
+          <CardTitle>Your Itinerary for</CardTitle>
         </CardHeader>
         <CardContent>
           {/* Event Column */}
@@ -129,9 +114,10 @@ export default function ItineraryView({ days, setDays }: ItineraryViewProps) {
                   <span className="block bg-gray-300 w-1 h-20"></span>
 
                   <div className="absolute text-sm left-6 flex flex-col justify-center">
-                    {/* <span>From: {item.from}</span>
-                    <span>to {item.to}</span> */}
-                    <span>{item.transport_mode} {item.travel_time}</span>
+                    {/* Conditionally render transport details for non-last events */}
+                    {index < days[currentDay].itinerary.length - 1 && (
+                      <span>{item.transport_mode} {item.travel_time}</span>
+                    )}
                   </div>
                 </div>
                 {/* Button to open the event details modal */}
@@ -208,6 +194,23 @@ const DraggableItem = ({ item, index, onDelete }: { item: ItineraryItem; index: 
     onDelete(item);
   };
 
+  // Function to convert minutes to hours and minutes
+  const formatTime = (timeInMinutes: number): string => {
+    const hours = Math.floor(timeInMinutes / 60);
+    const minutes = timeInMinutes % 60;
+
+    // Return formatted string
+    let formattedTime = '';
+    if (hours > 0) {
+      formattedTime += `${hours} hour${hours > 1 ? 's' : ''}`;
+    }
+    if (minutes > 0) {
+      if (formattedTime) formattedTime += ' ';
+      formattedTime += `${minutes} minute${minutes > 1 ? 's' : ''}`;
+    }
+    return formattedTime || '0 minutes';
+  };
+
   return (
     <div className='relative'>
       <div
@@ -218,9 +221,9 @@ const DraggableItem = ({ item, index, onDelete }: { item: ItineraryItem; index: 
         style={{ ...draggingStyle }}
       >
         <div ref={setDroppableNodeRef}>
-          <p className="font-semibold">{item.from}</p>
-          {/* <p className="text-sm text-gray-500">{item.to}</p> */}
-          <p className="text-sm text-gray-500">Recommend spend time: {item.time_at_location}</p>
+          <p className="font-semibold">{item.from.name}</p>
+          {/* <p className="text-sm text-gray-500">{item.to.name}</p> */}
+          <p className="text-sm text-gray-500">Recommended time: {formatTime(parseInt(item.time_at_location))}</p>
         </div>
       </div>
       <button onClick={handleCancelClick} className="absolute top-4 right-4 text-red-500 hover:text-red-700">

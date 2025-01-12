@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
 import ItineraryView from '../components/itinerary-view';
 import MapView from '../components/map-view';
-import MapView123 from '@/components/test';
+import { DayItinerary, ItineraryItem } from '../type';  // Import the correct types
 
 export default function ItineraryPage() {
-  const [days, setDays] = useState<any[]>([]); // Initialize with empty array
+  const [days, setDays] = useState<DayItinerary[]>([]); // Initialize with empty array
 
   useEffect(() => {
     const savedItinerary = localStorage.getItem('itinerary');
@@ -12,7 +12,7 @@ export default function ItineraryPage() {
       try {
         const parsedItinerary = JSON.parse(savedItinerary);
         if (Array.isArray(parsedItinerary) && parsedItinerary.length > 0) {
-          setDays([{ itinerary: parsedItinerary }]);
+          setDays([{itinerary: parsedItinerary }]); // Assuming the itinerary has a date, adjust as needed
         }
       } catch (e) {
         console.error("Error parsing itinerary data from localStorage:", e);
@@ -22,17 +22,16 @@ export default function ItineraryPage() {
 
   useEffect(() => {
     if (days.length > 0) {
-      console.log("Test useEffect triggered")
+      console.log("Test useEffect triggered");
       localStorage.setItem('itinerary', JSON.stringify(days[0].itinerary)); // Save to localStorage when itinerary changes
     }
   }, [days]);
 
-
   // Function to generate a Google Maps link for directions
-  const generateGoogleMapsLink = (locations: any[]) => {
+  const generateGoogleMapsLink = (locations: { lat: number; lng: number }[]) => {
     const origin = `${locations[0].lat},${locations[0].lng}`;
     const destination = `${locations[locations.length - 1].lat},${locations[locations.length - 1].lng}`;
-    const waypoints = locations.slice(1, -1).map((location: any) => `${location.lat},${location.lng}`).join('|');
+    const waypoints = locations.slice(1, -1).map((location) => `${location.lat},${location.lng}`).join('|');
     return `https://www.google.com/maps/dir/?api=1&origin=${origin}&destination=${destination}&waypoints=${waypoints}&travelmode=driving`;
   };
 
@@ -41,9 +40,10 @@ export default function ItineraryPage() {
     return <div>No itinerary data available</div>;
   }
 
-  const locations = days[0].itinerary.map((item: any) => {
-    const [lat, lng] = item.from_latlng.split(',').map(Number); // Assuming from_latlng is available
-    return { lat, lng };
+  // Generate locations from the itinerary for Google Maps link
+  const locations = days[0].itinerary.map((item: ItineraryItem) => {
+    console.log("debug", item)
+    return { lat: item.from.latitude, lng: item.from.longitude };
   });
 
   return (

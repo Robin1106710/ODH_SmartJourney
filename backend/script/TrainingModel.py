@@ -2,12 +2,12 @@ import os
 import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.tree import DecisionTreeClassifier
+from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import accuracy_score, classification_report
 import pickle
 
 # Paths for training data
-training_data_path = os.path.join(".", "data", "description_training_data.csv")  # Ensure this file exists
+training_data_path = os.path.join("backend", "data", "description_training_data.csv")  # Ensure this file exists
 
 # Verify the file existence
 if not os.path.exists(training_data_path):
@@ -39,9 +39,9 @@ def train_model():
     print("Splitting data into training and testing sets...")
     X_train, X_test, y_train, y_test = train_test_split(X_tfidf, y, test_size=0.2, random_state=42)
 
-    # Train a Decision Tree classifier
-    print("Training Decision Tree model...")
-    clf = DecisionTreeClassifier()
+    # Train a Logistic Regression classifier
+    print("Training Logistic Regression model...")
+    clf = LogisticRegression(max_iter=5000)  # Increase max_iter if convergence issues arise
     clf.fit(X_train, y_train)
 
     # Evaluate the model
@@ -53,11 +53,11 @@ def train_model():
     print(classification_report(y_test, y_pred))
 
     # Ensure the 'models' directory exists
-    os.makedirs(os.path.join(".", "models"), exist_ok=True)
+    os.makedirs(os.path.join("backend", "models"), exist_ok=True)
 
     # Define paths for saving model and vectorizer
-    model_path = os.path.join(".", "models", "decision_tree_model.pkl")
-    vectorizer_path = os.path.join(".", "models", "tfidf_vectorizer.pkl")
+    model_path = os.path.join("backend", "models", "logistic_regression_model.pkl")
+    vectorizer_path = os.path.join("backend", "models", "tfidf_vectorizer.pkl")
 
     # Save the trained model and TF-IDF vectorizer
     print("Saving model and vectorizer...")
