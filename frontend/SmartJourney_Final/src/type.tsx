@@ -5,6 +5,7 @@ export interface Location {
 }
 
 export interface ItineraryItem {
+    id: number;
     from: Location;
     to: Location;
     time_at_location: string;

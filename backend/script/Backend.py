@@ -240,6 +240,7 @@ def generate_itinerary():
 
             # Add the location to the itinerary
             itinerary.append({
+                "id": int(current_location["ID"]),
                 "from": {
                     "name": current_location["en_name"],
                     "latitude": current_location["Latitude"],

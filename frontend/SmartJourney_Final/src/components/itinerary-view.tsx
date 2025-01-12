@@ -17,6 +17,16 @@ export default function ItineraryView({ days, setDays }: ItineraryViewProps) {
   const [eventToDelete, setEventToDelete] = useState<ItineraryItem | null>(null); // Event to delete
   const [isModalOpen, setIsModalOpen] = useState(false); // State to control modal visibility
   const [selectedEvent, setSelectedEvent] = useState<ItineraryItem | null>(null); // Store selected event for modal
+  const [isAddEventModalOpen, setIsAddEventModalOpen] = useState(false); // State for "Add Event" modal visibility
+
+  // State for adding a new event
+  const [newEvent, setNewEvent] = useState<ItineraryItem>({
+    from: { name: '', latitude: 0, longitude: 0 },
+    to: { name: '', latitude: 0, longitude: 0 },
+    time_at_location: '',
+    transport_mode: '',
+    travel_time: ''
+  });
 
   // Function to update travel details (calculate transport mode and travel time)
   const updateTravelDetails = async (updatedItinerary: ItineraryItem[]) => {
@@ -48,6 +58,20 @@ export default function ItineraryView({ days, setDays }: ItineraryViewProps) {
       updatedDays[currentDay].itinerary = updatedItinerary;
       return updatedDays;
     });
+  };
+
+  // Function to add a new event to the itinerary
+  const handleAddEvent = () => {
+    const updatedItinerary = [...days[currentDay].itinerary, newEvent];
+    setNewEvent({
+      from: { name: '', latitude: 0, longitude: 0 },
+      to: { name: '', latitude: 0, longitude: 0 },
+      time_at_location: '',
+      transport_mode: '',
+      travel_time: ''
+    });
+    updateTravelDetails(updatedItinerary);
+    setIsAddEventModalOpen(false); // Close the modal after adding the event
   };
 
   const handleDragEnd = async (event: DragEndEvent) => {
@@ -101,7 +125,16 @@ export default function ItineraryView({ days, setDays }: ItineraryViewProps) {
     <DndContext onDragEnd={handleDragEnd}>
       <Card>
         <CardHeader>
-          <CardTitle>Your Itinerary for</CardTitle>
+          <CardTitle>Your Itinerary</CardTitle>
+          {/* Add New Event Button */}
+          <div className="text-end mt-4">
+            <button
+              onClick={() => setIsAddEventModalOpen(true)}
+              className="px-6 py-3 bg-green-600 text-white rounded-lg shadow-md hover:bg-green-700"
+            >
+              Add New Event
+            </button>
+          </div>
         </CardHeader>
         <CardContent>
           {/* Event Column */}
@@ -130,8 +163,114 @@ export default function ItineraryView({ days, setDays }: ItineraryViewProps) {
               </div>
             ))}
           </div>
+
+          {/* Form to add new event */}
+          <div className="mt-4">
+            <h3 className="text-xl">Add New Event</h3>
+            <form className="space-y-4">
+              {/* Input for 'from' location */}
+              <div>
+                <label className="block">From:</label>
+                <input
+                  type="text"
+                  className="w-full p-2 border rounded"
+                  value={newEvent.from.name}
+                  onChange={(e) => setNewEvent({ ...newEvent, from: { ...newEvent.from, name: e.target.value } })}
+                  placeholder="Enter location name"
+                />
+              </div>
+              {/* Input for 'to' location */}
+              <div>
+                <label className="block">To:</label>
+                <input
+                  type="text"
+                  className="w-full p-2 border rounded"
+                  value={newEvent.to.name}
+                  onChange={(e) => setNewEvent({ ...newEvent, to: { ...newEvent.to, name: e.target.value } })}
+                  placeholder="Enter destination name"
+                />
+              </div>
+              {/* Input for 'time_at_location' */}
+              <div>
+                <label className="block">Time at Location:</label>
+                <input
+                  type="number"
+                  className="w-full p-2 border rounded"
+                  value={newEvent.time_at_location}
+                  onChange={(e) => setNewEvent({ ...newEvent, time_at_location: e.target.value })}
+                  placeholder="Enter time in minutes"
+                />
+              </div>
+              {/* Add Event Button */}
+              <button
+                type="button"
+                className="w-full bg-blue-500 text-white p-2 rounded"
+                onClick={handleAddEvent}
+              >
+                Add Event
+              </button>
+            </form>
+          </div>
         </CardContent>
 
+        {/* Modal for adding a new event */}
+        {isAddEventModalOpen && (
+          <div className="fixed inset-0 bg-gray-500 bg-opacity-50 flex justify-center items-center z-50">
+            <div className="bg-white p-6 rounded shadow-lg max-w-sm w-full">
+              <h3 className="font-semibold text-xl mb-4">Add New Event</h3>
+              <form className="space-y-4">
+                {/* Input for 'from' location */}
+                <div>
+                  <label className="block">From:</label>
+                  <input
+                    type="text"
+                    className="w-full p-2 border rounded"
+                    value={newEvent.from.name}
+                    onChange={(e) => setNewEvent({ ...newEvent, from: { ...newEvent.from, name: e.target.value } })}
+                    placeholder="Enter location name"
+                  />
+                </div>
+                {/* Input for 'to' location */}
+                <div>
+                  <label className="block">To:</label>
+                  <input
+                    type="text"
+                    className="w-full p-2 border rounded"
+                    value={newEvent.to.name}
+                    onChange={(e) => setNewEvent({ ...newEvent, to: { ...newEvent.to, name: e.target.value } })}
+                    placeholder="Enter destination name"
+                  />
+                </div>
+                {/* Input for 'time_at_location' */}
+                <div>
+                  <label className="block">Time at Location:</label>
+                  <input
+                    type="number"
+                    className="w-full p-2 border rounded"
+                    value={newEvent.time_at_location}
+                    onChange={(e) => setNewEvent({ ...newEvent, time_at_location: e.target.value })}
+                    placeholder="Enter time in minutes"
+                  />
+                </div>
+                {/* Add Event Button */}
+                <button
+                  type="button"
+                  className="w-full bg-blue-500 text-white p-2 rounded"
+                  onClick={handleAddEvent}
+                >
+                  Add Event
+                </button>
+                <button
+                  type="button"
+                  className="w-full bg-gray-300 text-black p-2 rounded mt-4"
+                  onClick={() => setIsAddEventModalOpen(false)}
+                >
+                  Cancel
+                </button>
+              </form>
+            </div>
+          </div>
+        )}
         {/* Navigation Buttons */}
         <div className="flex justify-between m-4">
           <button onClick={goToPreviousDay} className="bg-blue-500 text-white p-3 rounded-full shadow-md hover:bg-blue-600 transition-all duration-300">
@@ -222,7 +361,6 @@ const DraggableItem = ({ item, index, onDelete }: { item: ItineraryItem; index: 
       >
         <div ref={setDroppableNodeRef}>
           <p className="font-semibold">{item.from.name}</p>
-          {/* <p className="text-sm text-gray-500">{item.to.name}</p> */}
           <p className="text-sm text-gray-500">Recommended time: {formatTime(parseInt(item.time_at_location))}</p>
         </div>
       </div>
