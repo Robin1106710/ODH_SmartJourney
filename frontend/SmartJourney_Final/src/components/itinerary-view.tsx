@@ -36,14 +36,14 @@ export default function ItineraryView({ days, setDays }: ItineraryViewProps) {
       const currentItem = updatedItinerary[i];
       const nextItem = updatedItinerary[i + 1];
 
-      console.log("Update Travel details", "From " + currentItem.from.name + " - To " + nextItem.from.name);
-
       // Fetch travel details between two consecutive locations
       const { travel_time, transport_mode } = await fetchGoogleDirections(`${currentItem.from.latitude},${currentItem.from.longitude}`, `${nextItem.from.latitude},${nextItem.from.longitude}`);
 
       // Update travel time and transport mode
       updatedItinerary[i].travel_time = travel_time;
       updatedItinerary[i].transport_mode = transport_mode;
+      console.log("Update Travel details", "From " + currentItem.from.name + " - To " + nextItem.from.name + " " + transport_mode + " " + travel_time);
+
 
       // Update total time (time_at_location + travel_time between events)
       totalTime += parseInt(currentItem.time_at_location) + parseInt(travel_time.split(' ')[0]);
@@ -158,60 +158,12 @@ export default function ItineraryView({ days, setDays }: ItineraryViewProps) {
                 {/* Button to open the event details modal */}
                 <button
                   onClick={() => handleOpenModal(item)}
-                  className="absolute top-3 right-12 text-blue-500 hover:text-blue-700"
+                  className="absolute top-12 right-4 md:top-3 md:right-12 text-blue-500 hover:text-blue-700"
                 >
                   View Details
                 </button>
               </div>
             ))}
-          </div>
-
-          {/* Form to add new event */}
-          <div className="mt-4">
-            <h3 className="text-xl">Add New Event</h3>
-            <form className="space-y-4">
-              {/* Input for 'from' location */}
-              <div>
-                <label className="block">From:</label>
-                <input
-                  type="text"
-                  className="w-full p-2 border rounded"
-                  value={newEvent.from.name}
-                  onChange={(e) => setNewEvent({ ...newEvent, from: { ...newEvent.from, name: e.target.value } })}
-                  placeholder="Enter location name"
-                />
-              </div>
-              {/* Input for 'to' location */}
-              <div>
-                <label className="block">To:</label>
-                <input
-                  type="text"
-                  className="w-full p-2 border rounded"
-                  value={newEvent.to.name}
-                  onChange={(e) => setNewEvent({ ...newEvent, to: { ...newEvent.to, name: e.target.value } })}
-                  placeholder="Enter destination name"
-                />
-              </div>
-              {/* Input for 'time_at_location' */}
-              <div>
-                <label className="block">Time at Location:</label>
-                <input
-                  type="number"
-                  className="w-full p-2 border rounded"
-                  value={newEvent.time_at_location}
-                  onChange={(e) => setNewEvent({ ...newEvent, time_at_location: e.target.value })}
-                  placeholder="Enter time in minutes"
-                />
-              </div>
-              {/* Add Event Button */}
-              <button
-                type="button"
-                className="w-full bg-blue-500 text-white p-2 rounded"
-                onClick={handleAddEvent}
-              >
-                Add Event
-              </button>
-            </form>
           </div>
         </CardContent>
 
@@ -274,14 +226,14 @@ export default function ItineraryView({ days, setDays }: ItineraryViewProps) {
           </div>
         )}
         {/* Navigation Buttons */}
-        <div className="flex justify-between m-4">
+        {/* <div className="flex justify-between m-4">
           <button onClick={goToPreviousDay} className="bg-blue-500 text-white p-3 rounded-full shadow-md hover:bg-blue-600 transition-all duration-300">
             <FaChevronLeft className="h-6 w-6" />
           </button>
           <button onClick={goToNextDay} className="bg-blue-500 text-white p-3 rounded-full shadow-md hover:bg-blue-600 transition-all duration-300">
             <FaChevronRight className="h-6 w-6" />
           </button>
-        </div>
+        </div> */}
       </Card>
 
       {/* Confirmation Dialog */}

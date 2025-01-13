@@ -42,16 +42,16 @@ export default function ItineraryPage() {
 
   // Generate locations from the itinerary for Google Maps link
   const locations = days[0].itinerary.map((item: ItineraryItem) => {
-    console.log("debug", item)
+    // console.log("debug", item)
     return { lat: item.from.latitude, lng: item.from.longitude };
   });
 
   return (
-    <div className="space-y-1 p-6 min-h-screen">
+    <div className="space-y-1 mx-1 lg:mx-64 min-h-screen">
       <h1 className="text-3xl font-bold">Your Custom Itinerary</h1>
 
       {/* Google Maps Link */}
-      <div className="text-end mb-4">
+      <div className="text-end m-8">
         <a href={generateGoogleMapsLink(locations)} target="_blank" rel="noopener noreferrer">
           <button className="px-6 py-3 bg-blue-600 text-white rounded-lg shadow-md hover:bg-blue-700">
             Open in Google Maps
@@ -59,9 +59,9 @@ export default function ItineraryPage() {
         </a>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid gap-6">
         <ItineraryView days={days} setDays={setDays} />
-        <MapView days={days} />
+        {/* <MapView days={days} /> */}
       </div>
     </div>
   );
